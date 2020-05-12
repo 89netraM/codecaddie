@@ -48,11 +48,15 @@ finally {
 	$Response.Dispose()
 }
 
+$Meta = "---`ntitle: $($Item.title)`npermalink: $($Item.link)`ntags: $($Item.tags)`n---`n`n"
+$Heading = "# [$($Item.title)]($($Item.link))`n`n"
+$ReadmeContent = $Meta + $Heading + $Item.body_markdown
+
 if ($Folder) {
 	if (-Not (Test-Path ".\$Folder" -PathType Container)) {
 		New-Item -ItemType Directory -Path ".\$Folder" | Out-Null
 	}
-	$Item.body_markdown | Out-File -FilePath ".\$Folder\README.md" -Force
+	$ReadmeContent | Out-File -FilePath ".\$Folder\README.md" -Force
 }
 else {
 	$Folder = [Regex]::Match($Item.link, "questions/\d+/(.+)").Groups[1].Value
@@ -66,5 +70,5 @@ else {
 	}
 	New-Item -ItemType Directory -Path ".\$Folder" | Out-Null
 
-	$Item.body_markdown | Out-File -FilePath ".\$Folder\README.md"
+	$ReadmeContent | Out-File -FilePath ".\$Folder\README.md"
 }
