@@ -33,10 +33,10 @@ if ($PSCmdlet.ParameterSetName -eq "ByUrl") {
 	}
 }
 
+$Item
 try {
 	$Response = Invoke-WebRequest "https://api.stackexchange.com/2.2/questions/$($ID)?site=codegolf&filter=!-W2e9exN_*126BIx8c_v" -ErrorAction Stop
-	$Item = ConvertFrom-Json $Response.Content
-	$Item.items[0].body_markdown | Out-File -FilePath "./README.md"
+	$Item = (ConvertFrom-Json $Response.Content).items[0]
 }
 catch {
 	Write-Warning "Could not fetch the question.`n`t$($_.Exception.Message)"
@@ -44,3 +44,5 @@ catch {
 finally {
 	$Response.Dispose()
 }
+
+$Item.body_markdown | Out-File -FilePath "./README.md"
