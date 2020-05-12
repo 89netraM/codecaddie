@@ -19,7 +19,10 @@ param(
 	# Proved the ID to a CodeGolf question.
 	[Parameter(Mandatory = $true,
 		ParameterSetName = "ByID")]
-	[int] $ID
+	[int] $ID,
+
+	# Name folder this instead of the title of the CodeGolf.
+	[string] $Folder
 )
 
 if ($PSCmdlet.ParameterSetName -eq "ByUrl") {
@@ -45,4 +48,23 @@ finally {
 	$Response.Dispose()
 }
 
-$Item.body_markdown | Out-File -FilePath "./README.md"
+if ($Folder) {
+	if (-Not (Test-Path ".\$Folder" -PathType Container)) {
+		New-Item -ItemType Directory -Path ".\$Folder" | Out-Null
+	}
+	$Item.body_markdown | Out-File -FilePath ".\$Folder\README.md" -Force
+}
+else {
+	$Folder = [Regex]::Match($Item.link, "questions/\d+/(.+)").Groups[1].Value
+
+	if (Test-Path ".\$Folder" -PathType Container) {
+		$i = 1
+		do {
+			$i++
+		} while (Test-Path ".\$Folder ($i)" -PathType Container)
+		$Folder = ".\$Folder ($i)"
+	}
+	New-Item -ItemType Directory -Path ".\$Folder" | Out-Null
+
+	$Item.body_markdown | Out-File -FilePath ".\$Folder\README.md"
+}
