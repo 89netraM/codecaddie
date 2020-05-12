@@ -8,24 +8,23 @@ the question.
 #>
 
 function New-CodeGolf {
-	[CmdletBinding(DefaultParameterSetName = "ByUrl")]
+	[CmdletBinding(DefaultParameterSetName = "ByUrl", SupportsShouldProcess = $true)]
 	param(
 		# Proved the Url to a CodeGolf question.
 		[Parameter(Mandatory = $true,
-			ValueFromPipeline = $true,
 			Position = 0,
 			ParameterSetName = "ByUrl")]
 		[string] $Url,
-		
+
 		# Proved the ID to a CodeGolf question.
 		[Parameter(Mandatory = $true,
 			ParameterSetName = "ByID")]
 		[int] $ID,
-	
+
 		# Name folder this instead of the title of the CodeGolf.
 		[string] $Folder
 	)
-	
+
 	if ($PSCmdlet.ParameterSetName -eq "ByUrl") {
 		$Match = [Regex]::Match($Url, "questions/(\d+)");
 		if ($Match.Success) {
@@ -36,7 +35,7 @@ function New-CodeGolf {
 			exit 1;
 		}
 	}
-	
+
 	$Item
 	try {
 		$Response = Invoke-WebRequest "https://api.stackexchange.com/2.2/questions/$($ID)?site=codegolf&filter=!-W2e9exN_*126BIx8c_v" -ErrorAction Stop
@@ -48,11 +47,11 @@ function New-CodeGolf {
 	finally {
 		$Response.Dispose()
 	}
-	
+
 	$Meta = "---`ntitle: $($Item.title)`npermalink: $($Item.link)`ntags: $($Item.tags)`n---`n`n"
 	$Heading = "# [$($Item.title)]($($Item.link))`n`n"
 	$ReadmeContent = $Meta + $Heading + $Item.body_markdown
-	
+
 	if ($Folder) {
 		if (-Not (Test-Path ".\$Folder" -PathType Container)) {
 			New-Item -ItemType Directory -Path ".\$Folder" | Out-Null
@@ -61,7 +60,7 @@ function New-CodeGolf {
 	}
 	else {
 		$Folder = [Regex]::Match($Item.link, "questions/\d+/(.+)").Groups[1].Value
-	
+
 		if (Test-Path ".\$Folder" -PathType Container) {
 			$i = 1
 			do {
@@ -70,7 +69,7 @@ function New-CodeGolf {
 			$Folder = ".\$Folder ($i)"
 		}
 		New-Item -ItemType Directory -Path ".\$Folder" | Out-Null
-	
+
 		$ReadmeContent | Out-File -FilePath ".\$Folder\README.md"
 	}
 }
